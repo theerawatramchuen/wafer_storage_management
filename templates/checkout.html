@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Check Out{% endblock %}
+{% block page_title %}Check Out Wafer Box{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card-glass p-4">
+      <div class="section-title"><i class="fa fa-box-arrow-up me-2 text-warning"></i>Check Out</div>
+      <form method="post" autocomplete="off">
+        <div class="mb-3">
+          <label class="form-label">Employee Number (EN) <span class="text-danger">*</span></label>
+          <input type="text" name="en" class="form-control" placeholder="e.g. 170756" required/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Wafer Lot No. <span class="text-danger">*</span></label>
+          <input list="lot-list" name="lot_no" class="form-control" placeholder="e.g. HAHT59.1" required/>
+          <datalist id="lot-list">
+            {% for l in active_lots %}
+            <option value="{{ l }}">
+            {% endfor %}
+          </datalist>
+          <div class="form-text">Only lots currently in storage are suggested.</div>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-4">
+            <label class="form-label">Box No.</label>
+            <input type="number" name="box_no" class="form-control" value="0" min="0"/>
+          </div>
+          <div class="col-8">
+            <label class="form-label">Cabinet No. (optional)</label>
+            <input list="cabinet-list" name="cabinet_no" class="form-control" placeholder="Leave blank to match any"/>
+            <datalist id="cabinet-list">
+              {% for c in cabinet_list %}
+              <option value="{{ c }}">
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Date Out <span class="text-danger">*</span></label>
+          <input type="text" name="date_out" class="form-control" value="{{ today }}" placeholder="d/m/yyyy" required/>
+        </div>
+        <hr/>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-warning text-dark flex-grow-1"><i class="fa fa-check me-1"></i>Confirm Check Out</button>
+          <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-glass p-3 mt-3">
+      <div class="small text-muted">
+        <i class="fa fa-info-circle text-primary me-1"></i>
+        <strong>Tip:</strong> Use <a href="{{ url_for('find_lot') }}">Find Lot</a> to look up which cabinet a lot is stored in before checking out.
+        If a lot has multiple boxes with the same box no., all matching active records will be checked out.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

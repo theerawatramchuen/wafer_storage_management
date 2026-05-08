@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Statistics{% endblock %}
+{% block page_title %}Storage Statistics{% endblock %}
+
+{% block content %}
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="icon" style="background:#e3f2fd"><i class="fa fa-boxes-stacked text-primary"></i></div>
+      <div class="value">{{ total_active }}</div>
+      <div class="label">Items Currently Stored</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="icon" style="background:#e8f5e9"><i class="fa fa-door-closed text-success"></i></div>
+      <div class="value">{{ total_cabinets }}</div>
+      <div class="label">Total Cabinets</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="icon" style="background:#fff3e0"><i class="fa fa-percent" style="color:#ff9800"></i></div>
+      <div class="value">{{ avg_usage }}%</div>
+      <div class="label">Average Usage Rate</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Utilization histogram -->
+  <div class="col-md-6">
+    <div class="card-glass p-4 h-100">
+      <div class="section-title">Cabinets by Utilization Band</div>
+      <canvas id="histChart" height="200"></canvas>
+    </div>
+  </div>
+  <!-- Box type distribution -->
+  <div class="col-md-6">
+    <div class="card-glass p-4 h-100">
+      <div class="section-title">Top Box Types in Storage</div>
+      <canvas id="boxChart" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Most crowded -->
+  <div class="col-md-6">
+    <div class="card-glass p-4">
+      <div class="section-title text-danger">Most Crowded Cabinets</div>
+      <table class="table table-sm align-middle mb-0">
+        <thead class="table-light"><tr><th>Cabinet</th><th>Type</th><th>Usage</th><th>Items</th></tr></thead>
+        <tbody>
+        {% for c in most_crowded %}
+        <tr>
+          <td><a href="{{ url_for('cabinet_detail', cab_no=c.cabinet_no) }}"><strong>{{ c.cabinet_no }}</strong></a></td>
+          <td><span class="badge-type">{{ c.cabinet_type_id }}</span></td>
+          <td style="min-width:120px">
+            <div class="d-flex align-items-center gap-2">
+              <div class="usage-bar flex-grow-1">
+                <div class="usage-fill" style="width:{{ c.usage_pct }}%;background:#f44336"></div>
+              </div>
+              <span class="small text-danger fw-semibold">{{ c.usage_pct }}%</span>
+            </div>
+          </td>
+          <td>{{ c.item_count|int }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- Emptiest -->
+  <div class="col-md-6">
+    <div class="card-glass p-4">
+      <div class="section-title text-success">Emptiest Cabinets</div>
+      <table class="table table-sm align-middle mb-0">
+        <thead class="table-light"><tr><th>Cabinet</th><th>Type</th><th>Usage</th><th>Items</th></tr></thead>
+        <tbody>
+        {% for c in emptiest %}
+        <tr>
+          <td><a href="{{ url_for('cabinet_detail', cab_no=c.cabinet_no) }}"><strong>{{ c.cabinet_no }}</strong></a></td>
+          <td><span class="badge-type">{{ c.cabinet_type_id }}</span></td>
+          <td style="min-width:120px">
+            <div class="d-flex align-items-center gap-2">
+              <div class="usage-bar flex-grow-1">
+                <div class="usage-fill" style="width:{{ c.usage_pct }}%;background:#4caf50"></div>
+              </div>
+              <span class="small text-success fw-semibold">{{ c.usage_pct }}%</span>
+            </div>
+          </td>
+          <td>{{ c.item_count|int }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Activity by EN -->
+<div class="card-glass p-4 mb-3">
+  <div class="section-title">Top 10 Active Employees (by check-ins)</div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light"><tr><th>Employee (EN)</th><th>Check-Ins</th><th>Share</th></tr></thead>
+      <tbody>
+      {% set total_ops = activity | sum(attribute='count') %}
+      {% for a in activity %}
+      <tr>
+        <td><strong>{{ a.put_in_by_en|int }}</strong></td>
+        <td>{{ a.count }}</td>
+        <td style="min-width:180px">
+          <div class="d-flex align-items-center gap-2">
+            <div class="usage-bar flex-grow-1">
+              <div class="usage-fill" style="width:{{ (a.count/total_ops*100)|round }}%;background:#0f4c81"></div>
+            </div>
+            <span class="small text-muted">{{ (a.count/total_ops*100)|round(1) }}%</span>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Box type table -->
+<div class="card-glass p-4">
+  <div class="section-title">Box Type Inventory (Currently Stored)</div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light"><tr><th>Box Type</th><th>Description</th><th>Count</th></tr></thead>
+      <tbody>
+      {% for b in box_counts %}
+      <tr>
+        <td><span class="badge bg-light text-dark border">{{ b.wafer_box_type_id }}</span></td>
+        <td class="text-muted">{{ b.description }}</td>
+        <td>{{ b.count }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Histogram
+new Chart(document.getElementById('histChart'),{
+  type:'bar',
+  data:{
+    labels: {{ hist_labels|tojson }},
+    datasets:[{
+      label:'# Cabinets',
+      data: {{ hist_counts|tojson }},
+      backgroundColor:['#4caf50','#8bc34a','#ff9800','#ff5722','#f44336'],
+      borderRadius:6,
+    }]
+  },
+  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'Cabinets'}}}}
+});
+
+// Box type
+const bx = {{ box_counts|tojson }};
+new Chart(document.getElementById('boxChart'),{
+  type:'horizontalBar'||'bar',
+  data:{
+    labels:bx.slice(0,10).map(d=>d.wafer_box_type_id),
+    datasets:[{label:'Items',data:bx.slice(0,10).map(d=>d.count),backgroundColor:'#0f4c81',borderRadius:4}]
+  },
+  options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}
+});
+</script>
+{% endblock %}

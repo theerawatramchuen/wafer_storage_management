@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Check In{% endblock %}
+{% block page_title %}Check In Wafer Box{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card-glass p-4">
+      <div class="section-title"><i class="fa fa-box-arrow-in-down me-2 text-success"></i>New Check-In</div>
+      <form method="post" autocomplete="off">
+        <div class="mb-3">
+          <label class="form-label">Employee Number (EN) <span class="text-danger">*</span></label>
+          <input type="text" name="en" class="form-control" placeholder="e.g. 170756" required/>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label">Cabinet No. <span class="text-danger">*</span></label>
+            <input list="cabinet-list" name="cabinet_no" class="form-control" placeholder="e.g. 31" required/>
+            <datalist id="cabinet-list">
+              {% for c in cabinet_list %}
+              <option value="{{ c }}">
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Date In <span class="text-danger">*</span></label>
+            <input type="text" name="date_in" class="form-control" value="{{ today }}" placeholder="d/m/yyyy" required/>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Wafer Lot No. <span class="text-danger">*</span></label>
+          <input type="text" name="lot_no" class="form-control" placeholder="e.g. HAHT59.1" required/>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-4">
+            <label class="form-label">Box No.</label>
+            <input type="number" name="box_no" class="form-control" value="0" min="0"/>
+            <div class="form-text">Use 0 for single/default box</div>
+          </div>
+          <div class="col-8">
+            <label class="form-label">Box Type <span class="text-danger">*</span></label>
+            <select name="box_type_id" class="form-select" required>
+              <option value="">-- Select --</option>
+              {% for b in box_types %}
+              <option value="{{ b.wafer_box_type_id }}">{{ b.wafer_box_type_id }} – {{ b.description }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <hr/>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-success flex-grow-1"><i class="fa fa-check me-1"></i>Confirm Check In</button>
+          <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-glass p-3 mt-3">
+      <div class="small text-muted">
+        <i class="fa fa-info-circle text-primary me-1"></i>
+        <strong>Tip:</strong> Use <a href="{{ url_for('find_space') }}">Find Space</a> to identify which cabinet has room before checking in.
+        Volume is automatically calculated from the box type dimensions.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Cabinet {{ cab_no }}{% endblock %}
+{% block page_title %}Cabinet {{ cab_no }}{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-2 mb-3">
+  <a href="{{ url_for('cabinets') }}" class="btn btn-sm btn-outline-secondary"><i class="fa fa-arrow-left me-1"></i>Back</a>
+  <a href="{{ url_for('checkin') }}" class="btn btn-sm btn-primary"><i class="fa fa-plus me-1"></i>Check In to this Cabinet</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-5">
+    <div class="card-glass p-4 h-100">
+      <div class="section-title">Cabinet Info</div>
+      <table class="table table-sm mb-0">
+        <tr><td class="text-muted">Cabinet No.</td><td><strong>{{ cab.cabinet_no }}</strong></td></tr>
+        <tr><td class="text-muted">Type</td><td><span class="badge-type">{{ cab.cabinet_type_id }}</span></td></tr>
+        <tr><td class="text-muted">Description</td><td>{{ cab.description_x }}</td></tr>
+        <tr><td class="text-muted">Dimensions</td><td>{{ cab.width }} × {{ cab.length }} × {{ cab.height }} mm</td></tr>
+        <tr><td class="text-muted">Total Volume</td><td>{{ "{:,.0f}".format(cab.total_vol_cm3) }} cm³</td></tr>
+        <tr><td class="text-muted">Used Volume</td><td>{{ "{:,.0f}".format(cab.used_vol_cm3) }} cm³</td></tr>
+        <tr><td class="text-muted">Free Volume</td><td class="{% if cab.free_vol_cm3 < 5000 %}text-danger{% else %}text-success{% endif %} fw-semibold">{{ "{:,.0f}".format(cab.free_vol_cm3) }} cm³</td></tr>
+        <tr><td class="text-muted">Items In</td><td>{{ cab.item_count|int }}</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card-glass p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+      <div class="section-title">Usage</div>
+      <canvas id="cabChart" style="max-height:180px"></canvas>
+      <div class="mt-2 fw-bold fs-4">{{ cab.usage_pct }}%</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card-glass p-4 h-100">
+      <div class="section-title">Quick Actions</div>
+      <div class="d-grid gap-2">
+        <a href="{{ url_for('find_space') }}" class="btn btn-outline-primary btn-sm"><i class="fa fa-search me-1"></i>Find Space for Box</a>
+        <a href="{{ url_for('checkin') }}" class="btn btn-success btn-sm"><i class="fa fa-sign-in-alt me-1"></i>Check In</a>
+        <a href="{{ url_for('checkout') }}" class="btn btn-warning btn-sm text-dark"><i class="fa fa-sign-out-alt me-1"></i>Check Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Currently stored -->
+<div class="card-glass p-4 mb-4">
+  <div class="section-title">Currently Stored ({{ items_in|length }} items)</div>
+  {% if items_in %}
+  <div class="table-responsive">
+    <table class="table table-hover table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Lot No.</th><th>Box No.</th><th>Box Type</th><th>Description</th><th>Size (mm)</th><th>Vol (cm³)</th><th>Date In</th><th>By (EN)</th></tr>
+      </thead>
+      <tbody>
+      {% for i in items_in %}
+      <tr>
+        <td><strong>{{ i.wafer_lot_no }}</strong></td>
+        <td>{{ i.wafer_box_no }}</td>
+        <td><span class="badge bg-light text-dark border">{{ i.wafer_box_type_id }}</span></td>
+        <td class="text-muted small">{{ i.description }}</td>
+        <td class="text-muted small">{{ i.width }}×{{ i.length }}×{{ i.height }}</td>
+        <td>{{ "{:,.0f}".format(i.box_vol_mm3/1000) }}</td>
+        <td>{{ i.date_time_in }}</td>
+        <td>{{ i.put_in_by_en }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="text-muted text-center py-4"><i class="fa fa-inbox fa-2x mb-2"></i><br>Cabinet is empty</div>
+  {% endif %}
+</div>
+
+<!-- History -->
+<div class="card-glass p-4">
+  <div class="section-title">Recent History (taken out)</div>
+  {% if history %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Lot No.</th><th>Box No.</th><th>Box Type</th><th>Date In</th><th>By</th><th>Date Out</th><th>By</th></tr>
+      </thead>
+      <tbody>
+      {% for h in history %}
+      <tr class="text-muted">
+        <td>{{ h.wafer_lot_no }}</td>
+        <td>{{ h.wafer_box_no }}</td>
+        <td>{{ h.wafer_box_type_id }}</td>
+        <td>{{ h.date_time_in }}</td>
+        <td>{{ h.put_in_by_en }}</td>
+        <td>{{ h.date_time_out }}</td>
+        <td>{{ h.take_out_by_en }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="text-muted small">No history available.</div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+new Chart(document.getElementById('cabChart'),{
+  type:'doughnut',
+  data:{
+    labels:['Used','Free'],
+    datasets:[{data:[{{ cab.used_vol_cm3|round }},{{ cab.free_vol_cm3|round }}],
+      backgroundColor:['{% if cab.usage_pct>80 %}#f44336{% elif cab.usage_pct>60 %}#ff9800{% else %}#4caf50{% endif %}','#e9ecef'],
+      borderWidth:0}]
+  },
+  options:{cutout:'72%',plugins:{legend:{display:false}}}
+});
+</script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Find Lot{% endblock %}
+{% block page_title %}Find Wafer Lot{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card-glass p-4">
+      <div class="section-title">Search Lot</div>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">Lot Number (partial match)</label>
+          <input type="text" name="lot_no" class="form-control" value="{{ query }}" placeholder="e.g. HAHT59.1" autofocus required/>
+        </div>
+        <button type="submit" class="btn btn-primary w-100"><i class="fa fa-magnifying-glass me-1"></i>Search</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    {% if search_done %}
+    <div class="card-glass p-4">
+      <div class="section-title">
+        Results for "{{ query }}" — {{ results|length }} record(s)
+      </div>
+      {% if results %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr><th>Lot No.</th><th>Box No.</th><th>Box Type</th><th>Cabinet</th><th>Date In</th><th>By</th><th>Date Out</th><th>By</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+          {% for r in results %}
+          <tr>
+            <td><strong>{{ r.wafer_lot_no }}</strong></td>
+            <td>{{ r.wafer_box_no }}</td>
+            <td><span class="badge bg-light text-dark border">{{ r.wafer_box_type_id }}</span></td>
+            <td>
+              {% if not r.date_time_out or r.date_time_out != r.date_time_out %}
+              <a href="{{ url_for('cabinet_detail', cab_no=r.cabinet_no) }}"><strong>{{ r.cabinet_no }}</strong></a>
+              {% else %}
+              <span class="text-muted">{{ r.cabinet_no }}</span>
+              {% endif %}
+            </td>
+            <td>{{ r.date_time_in }}</td>
+            <td>{{ r.put_in_by_en }}</td>
+            <td>{{ r.date_time_out if r.date_time_out == r.date_time_out else '—' }}</td>
+            <td>{{ r.take_out_by_en if r.take_out_by_en == r.take_out_by_en else '—' }}</td>
+            <td>
+              {% if not r.date_time_out or r.date_time_out != r.date_time_out %}
+                <span class="badge bg-success">In Storage</span>
+              {% else %}
+                <span class="badge bg-secondary">Taken Out</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="fa fa-circle-xmark fa-3x mb-3 text-danger opacity-50"></i>
+        <p>No lot found matching "{{ query }}".</p>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="card-glass p-5 text-center text-muted">
+      <i class="fa fa-barcode fa-3x mb-3 text-primary opacity-50"></i>
+      <h5>Enter a lot number to search</h5>
+      <p class="mb-0">Partial matches are supported. The search covers both active and historical records.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

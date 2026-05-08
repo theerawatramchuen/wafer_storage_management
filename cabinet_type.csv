@@ -1,0 +1,9 @@
+cabinet_type_id,description,width,length,height
+A,2 doors cabinet with lever-type opening.,880,440,980
+B,"2 doors cabinet, opening one side at a time.",880,440,980
+C,"2 doors huge cabinet, opening one side at a time.",1440,450,890
+D,"3 doors huge cabinet, opening one side at a time.",1440,450,890
+E,Tall single-door cabinet,630,430,1400
+F,Tiny single-door cabinet,630,430,510
+G,Sliding door cabinet,1170,400,1020
+H,Giant cabinet,2250,420,980

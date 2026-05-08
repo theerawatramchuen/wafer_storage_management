@@ -1,0 +1,32 @@
+wafer_box_type_id,description,width,length,height
+aa,"6"" thin jar",180,180,50
+bb,"6"" thick jar",180,180,90
+cc,"6"" white jar",180,180,60
+dd,"6"" rotating lid box",170,170,120
+ee,"6"" canister",170,170,80
+ff,"6"" cassette",180,210,190
+gg,"8"" thin jar",250,250,30
+hh,"8"" thick jar",250,250,60
+ii,"8"" jar with white lid",230,230,90
+jj,"8"" rotating lid box",220,220,90
+kk,"8"" black rotating lid box",230,230,100
+ll,"8"" canister with 2 locks type",230,230,60
+mm,"8"" canister with 4 locks type",220,220,70
+nn,"8"" tall canister with 4 locks type",230,230,90
+oo,"8"" canister with 4 locks type,square edge lid",230,230,80
+pp,"8"" canister with 4 locks type,rounded edge lid",240,240,80
+qq,"8"" tall canister with 4 locks type,rounded edge lid",240,240,100
+rr,"8"" clear cassette ",280,270,250
+ss,"8"" cassette with clear lid",270,270,260
+tt,"8"" opaque cassette ",250,260,240
+uu,"8"" ring box",350,350,30
+vv,"12"" rotating lid box",320,320,90
+ww,"12"" canister with 4 locks type",320,320,80
+xx,"12"" canister with 4 locks type,rounded edge lid",320,320,80
+yy,"12"" canister with 4 locks type,square edge lid",320,320,80
+zz,"12"" tall canister with 4 locks type,square edge lid",320,320,120
+aaa,"12"" huge canister with 4 locks type,square edge lid",430,440,150
+bbb,"12"" tall ring box",250,330,400
+ccc,"12"" large ring box",220,400,420
+ddd,"12"" FOSB",330,390,360
+eee,"12"" ring box",430,440,50

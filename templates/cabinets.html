@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Cabinets{% endblock %}
+{% block page_title %}All Cabinets{% endblock %}
+
+{% block content %}
+<div class="card-glass p-4 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-auto">
+      <label class="form-label small">Cabinet Type</label>
+      <select name="type" class="form-select form-select-sm">
+        <option value="">All Types</option>
+        {% for t in cabinet_types %}
+        <option value="{{ t }}" {% if t==type_filter %}selected{% endif %}>Type {{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label small">Sort By</label>
+      <select name="sort" class="form-select form-select-sm">
+        <option value="cabinet_no" {% if sort_by=='cabinet_no' %}selected{% endif %}>Cabinet No.</option>
+        <option value="free_desc" {% if sort_by=='free_desc' %}selected{% endif %}>Most Free Space</option>
+        <option value="free_asc" {% if sort_by=='free_asc' %}selected{% endif %}>Least Free Space</option>
+        <option value="usage" {% if sort_by=='usage' %}selected{% endif %}>Highest Usage</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+      <a href="{{ url_for('cabinets') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+    </div>
+    <div class="col-auto ms-auto text-muted small pt-3">
+      Showing {{ cabinets|length }} cabinets
+    </div>
+  </form>
+</div>
+
+<div class="card-glass">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Cabinet No.</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>W×L×H (mm)</th>
+          <th>Total Vol (cm³)</th>
+          <th>Items In</th>
+          <th>Usage</th>
+          <th>Free (cm³)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for c in cabinets %}
+      <tr>
+        <td><strong>{{ c.cabinet_no }}</strong></td>
+        <td><span class="badge-type">{{ c.cabinet_type_id }}</span></td>
+        <td class="text-muted" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ c.description_x }}">{{ c.description_x }}</td>
+        <td class="text-muted small">{{ c.width }}×{{ c.length }}×{{ c.height }}</td>
+        <td>{{ "{:,.0f}".format(c.total_vol_cm3) }}</td>
+        <td>{{ c.item_count|int }}</td>
+        <td style="min-width:130px">
+          <div class="d-flex align-items-center gap-2">
+            <div class="usage-bar flex-grow-1">
+              <div class="usage-fill" style="width:{{ c.usage_pct }}%;background:{% if c.usage_pct>80 %}#f44336{% elif c.usage_pct>60 %}#ff9800{% else %}#4caf50{% endif %}"></div>
+            </div>
+            <span class="small">{{ c.usage_pct }}%</span>
+          </div>
+        </td>
+        <td class="{% if c.free_vol_cm3 < 5000 %}text-danger{% elif c.free_vol_cm3 < 50000 %}text-warning{% else %}text-success{% endif %} fw-semibold">
+          {{ "{:,.0f}".format(c.free_vol_cm3) }}
+        </td>
+        <td>
+          <a href="{{ url_for('cabinet_detail', cab_no=c.cabinet_no) }}" class="btn btn-sm btn-outline-primary py-0 px-2">Detail</a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

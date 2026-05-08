@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Find Space{% endblock %}
+{% block page_title %}Find Cabinet Space{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card-glass p-4">
+      <div class="section-title">Search Parameters</div>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">Wafer Box Type <span class="text-danger">*</span></label>
+          <select name="box_type_id" class="form-select" required>
+            <option value="">-- Select Box Type --</option>
+            {% for b in box_types %}
+            <option value="{{ b.wafer_box_type_id }}">{{ b.wafer_box_type_id }} – {{ b.description }} ({{ b.width }}×{{ b.length }}×{{ b.height }} mm)</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Quantity</label>
+          <input type="number" name="qty" class="form-control" value="1" min="1" max="50"/>
+          <div class="form-text">How many boxes of this type to store.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Preferred Cabinet Type (optional)</label>
+          <select name="pref_cabinet_type" class="form-select">
+            <option value="">Any Type</option>
+            {% for t in cabinet_types %}
+            <option value="{{ t }}">Type {{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary w-100"><i class="fa fa-search me-1"></i>Find Suitable Cabinets</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    {% if search_done %}
+    <div class="card-glass p-4">
+      <div class="section-title">
+        {% if results %}
+          <i class="fa fa-check-circle text-success me-1"></i>{{ results|length }} Cabinet(s) Found
+        {% else %}
+          <i class="fa fa-times-circle text-danger me-1"></i>No Cabinets with Enough Space
+        {% endif %}
+      </div>
+      {% if results %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr><th>Cabinet</th><th>Type</th><th>Description</th><th>Usage</th><th>Free (cm³)</th><th>Items</th><th></th></tr>
+          </thead>
+          <tbody>
+          {% for r in results %}
+          <tr>
+            <td><strong>{{ r.cabinet_no }}</strong></td>
+            <td><span class="badge-type">{{ r.cabinet_type_id }}</span></td>
+            <td class="text-muted small">{{ r.cabinet_desc }}</td>
+            <td style="min-width:120px">
+              <div class="d-flex align-items-center gap-2">
+                <div class="usage-bar flex-grow-1">
+                  <div class="usage-fill" style="width:{{ r.usage_pct }}%;background:{% if r.usage_pct>80 %}#f44336{% elif r.usage_pct>60 %}#ff9800{% else %}#4caf50{% endif %}"></div>
+                </div>
+                <span class="small">{{ r.usage_pct }}%</span>
+              </div>
+            </td>
+            <td class="text-success fw-semibold">{{ "{:,.0f}".format(r.free_vol_cm3) }}</td>
+            <td>{{ r.item_count|int }}</td>
+            <td>
+              <a href="{{ url_for('cabinet_detail', cab_no=r.cabinet_no) }}" class="btn btn-sm btn-outline-primary py-0 px-2">View</a>
+              <a href="{{ url_for('checkin') }}?cabinet={{ r.cabinet_no }}" class="btn btn-sm btn-success py-0 px-2">Check In</a>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="fa fa-warehouse fa-3x mb-3"></i>
+        <p>No cabinets have sufficient space for the requested boxes.<br>Consider using a different box type or checking if items can be consolidated.</p>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="card-glass p-5 text-center text-muted">
+      <i class="fa fa-search fa-3x mb-3 text-primary opacity-50"></i>
+      <h5>Select box type and quantity to find available cabinets</h5>
+      <p class="mb-0">The system will calculate required volume and list all cabinets with enough free space.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

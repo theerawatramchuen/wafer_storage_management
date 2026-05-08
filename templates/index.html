@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- KPI row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="icon" style="background:#e3f2fd"><i class="fa fa-door-closed text-primary"></i></div>
+      <div class="value">{{ total_cabinets }}</div>
+      <div class="label">Total Cabinets</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="icon" style="background:#e8f5e9"><i class="fa fa-box text-success"></i></div>
+      <div class="value">{{ total_items }}</div>
+      <div class="label">Items In Storage</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="icon" style="background:#fff3e0"><i class="fa fa-chart-pie" style="color:#ff9800"></i></div>
+      <div class="value">{{ overall_pct }}%</div>
+      <div class="label">Overall Used</div>
+      <div class="usage-bar mt-2">
+        <div class="usage-fill" style="width:{{ overall_pct }}%;background:{% if overall_pct>80 %}#f44336{% elif overall_pct>60 %}#ff9800{% else %}#4caf50{% endif %}"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="icon" style="background:#f3e5f5"><i class="fa fa-expand" style="color:#9c27b0"></i></div>
+      <div class="value">{{ "{:,.0f}".format(total_free) }}</div>
+      <div class="label">Free Volume (cm³)</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Space Overview Chart -->
+  <div class="col-lg-5">
+    <div class="card-glass p-4 h-100">
+      <div class="section-title">Storage Utilization</div>
+      <canvas id="spaceChart" height="220"></canvas>
+      <div class="d-flex justify-content-around mt-3 text-center">
+        <div>
+          <div class="fw-bold text-success">{{ "{:,.0f}".format(total_free) }}</div>
+          <div class="small text-muted">Free cm³</div>
+        </div>
+        <div>
+          <div class="fw-bold text-warning">{{ "{:,.0f}".format(total_used) }}</div>
+          <div class="small text-muted">Used cm³</div>
+        </div>
+        <div>
+          <div class="fw-bold text-primary">{{ "{:,.0f}".format(total_vol) }}</div>
+          <div class="small text-muted">Total cm³</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cabinet type summary -->
+  <div class="col-lg-7">
+    <div class="card-glass p-4 h-100">
+      <div class="section-title">Space by Cabinet Type</div>
+      <canvas id="typeChart" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Cabinet status table -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card-glass p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-title mb-0">Cabinet Space Overview</div>
+        <a href="{{ url_for('cabinets') }}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Cabinet</th>
+              <th>Type</th>
+              <th>Size (W×L×H mm)</th>
+              <th>Items</th>
+              <th>Usage</th>
+              <th>Free (cm³)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for c in summary[:30] %}
+          <tr>
+            <td><strong>{{ c.cabinet_no }}</strong></td>
+            <td><span class="badge-type">{{ c.cabinet_type_id }}</span></td>
+            <td class="text-muted">{{ c.width }}×{{ c.length }}×{{ c.height }}</td>
+            <td>{{ c.item_count|int }}</td>
+            <td style="min-width:120px">
+              <div class="d-flex align-items-center gap-2">
+                <div class="usage-bar flex-grow-1">
+                  <div class="usage-fill" style="width:{{ c.usage_pct }}%;background:{% if c.usage_pct>80 %}#f44336{% elif c.usage_pct>60 %}#ff9800{% else %}#4caf50{% endif %}"></div>
+                </div>
+                <span class="small text-muted">{{ c.usage_pct }}%</span>
+              </div>
+            </td>
+            <td>{{ "{:,.0f}".format(c.free_vol_cm3) }}</td>
+            <td><a href="{{ url_for('cabinet_detail', cab_no=c.cabinet_no) }}" class="btn btn-xs btn-outline-secondary btn-sm py-0 px-2">Detail</a></td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if summary|length > 30 %}
+      <div class="text-center mt-2 text-muted small">Showing 30 of {{ summary|length }} cabinets. <a href="{{ url_for('cabinets') }}">View all →</a></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Recent activity -->
+<div class="card-glass p-4">
+  <div class="section-title">Recent Activity</div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Cabinet</th><th>Lot No.</th><th>Box Type</th><th>Date In</th><th>By (EN)</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+      {% for r in recent %}
+      <tr>
+        <td><a href="{{ url_for('cabinet_detail', cab_no=r.cabinet_no) }}">{{ r.cabinet_no }}</a></td>
+        <td>{{ r.wafer_lot_no }}</td>
+        <td><span class="badge bg-light text-dark border">{{ r.wafer_box_type_id }}</span></td>
+        <td>{{ r.date_time_in }}</td>
+        <td>{{ r.put_in_by_en }}</td>
+        <td>
+          {% if r.date_time_out and r.date_time_out == r.date_time_out %}
+            <span class="badge bg-secondary">Out</span>
+          {% else %}
+            <span class="badge bg-success">In Storage</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Donut chart
+new Chart(document.getElementById('spaceChart'),{
+  type:'doughnut',
+  data:{
+    labels:['Used','Free'],
+    datasets:[{data:[{{ total_used }},{{ total_free }}],
+      backgroundColor:['#ff9800','#4caf50'],borderWidth:0}]
+  },
+  options:{cutout:'70%',plugins:{legend:{position:'bottom'}}}
+});
+
+// Bar chart by type
+const typeData = {{ type_stats | tojson }};
+new Chart(document.getElementById('typeChart'),{
+  type:'bar',
+  data:{
+    labels: typeData.map(d=>d.cabinet_type_id),
+    datasets:[
+      {label:'Free cm³',data:typeData.map(d=>Math.round(d.free_cm3)),backgroundColor:'#4caf50'},
+    ]
+  },
+  options:{
+    plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true,title:{display:true,text:'Free Volume (cm³)'}}}
+  }
+});
+</script>
+{% endblock %}

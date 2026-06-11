@@ -34,4 +34,3 @@ Then open: **http://localhost:5050**
 - Usage % = sum of stored box volumes / cabinet total volume  
 - check-in/out data is written back to `cabinet_datalog.csv`
 ## Reference
-https://claude.ai/share/93355cfc-0b55-4067-b3da-f7cb2d7ab3d7
